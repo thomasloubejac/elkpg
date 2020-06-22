@@ -68,9 +68,54 @@ services:
     depends_on:
       - elasticsearch
 
+  prometheus:
+    build:
+      context: prometheus/
+    volumes:
+      - type: bind
+        source: ./prometheus/config/prometheus.yml
+        target: /usr/share/prometheus/config/prometheus.yml
+        read_only: true
+      - type: volume
+        source: prometheus
+        target: /usr/share/prometheus/data
+    ports:
+      - "9090:9090"
+    networks:
+      - elk
+
+  grafana:
+    build:
+      context: grafana/
+    user: "1000:1000"  
+    volumes:
+      - type: bind
+        source: ./grafana/config/grafana.yml
+        target: /usr/share/grafana/config/grafana.yml
+        read_only: true
+      - type: bind
+        source: ./grafana/grafana-storage
+        target: /var/lib/grafana
+        read_only: false
+    ports:
+      - "3000:3000"
+    networks:
+      - elk
+
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:7.7.1
+    volumes:
+      - type: bind 
+        source: ./metricbeat/config/metricbeat.yml
+        target: /usr/share/metricbeat/metricbeat.yml
+        read_only: true
+    networks:
+      - elk
+
 networks:
   elk:
     driver: bridge
 
 volumes:
+  prometheus:
   elasticsearch:

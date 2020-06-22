@@ -53,6 +53,37 @@ services:
       mode: replicated
       replicas: 1
 
+  prometheus:
+    image: prom/prometheus 
+    ports:
+      - "9090:9090"
+    configs:
+      - source: prometheus_config
+        target: /usr/share/prometheus/config/prometheus.yml
+    environment:
+      ELASTIC_PASSWORD: changeme
+      # Use single node discovery in order to disable production mode and avoid bootstrap checks
+      # see https://www.elastic.co/guide/en/prometheus/reference/current/bootstrap-checks.html
+    networks:
+      - elk
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  grafana:
+    image: grafana/grafana 
+    ports:
+      - "3000:3000"
+    configs:
+      - source: grafana_config
+        target: /usr/share/grafana/config/grafana.yml
+    environment:
+    networks:
+      - elk
+    deploy:
+      mode: replicated
+      replicas: 1
+
 configs:
 
   elastic_config:
@@ -63,6 +94,10 @@ configs:
     file: ./logstash/pipeline/logstash.conf
   kibana_config:
     file: ./kibana/config/kibana.yml
+  prometheus_config:
+    file: ./prometheus/config/prometheus.yml
+  grafana_config:
+    file: ./grafana/config/grafana.yml
 
 networks:
   elk:
